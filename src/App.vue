@@ -1,7 +1,7 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+<script lang="ts" setup>
+import MapNav from './pages/MapNav.vue'
 </script>
 
 <template>
-  <HelloWorld />
+    <MapNav/>
 </template>
