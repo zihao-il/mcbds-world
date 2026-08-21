@@ -59,14 +59,10 @@ function selectMap(mapId: string) {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     margin-bottom: 6px;
     padding: 10px 12px;
-
     cursor: pointer;
-    transition: background-color 0.2s,
-    transform 0.2s;
-
+    transition: background-color 0.2s, transform 0.2s;
     border-radius: 8px;
 }
 

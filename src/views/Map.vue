@@ -227,6 +227,7 @@ onUnmounted(() => {
 .mobile-toolbar {
     display: none;
     margin-left: 3.5em;
+    margin-top: 0.5em;
 }
 
 /*
