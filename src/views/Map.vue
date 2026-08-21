@@ -226,8 +226,10 @@ onUnmounted(() => {
  */
 .mobile-toolbar {
     display: none;
-    margin-left: 3.5em;
-    margin-top: 0.5em;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 1em;
 }
 
 /*
@@ -300,7 +302,7 @@ onUnmounted(() => {
         left: 0;
         display: flex;
         align-items: center;
-        height: 52px;
+        height: 48px;
         padding: 6px 10px;
         pointer-events: none;
         gap: 10px;
@@ -309,8 +311,8 @@ onUnmounted(() => {
     .menu-button {
         font-size: 20px;
         flex-shrink: 0;
-        width: 42px;
-        height: 42px;
+        width: 38px;
+        height: 38px;
         cursor: pointer;
         pointer-events: auto;
         color: #222222;
@@ -340,7 +342,6 @@ onUnmounted(() => {
         justify-content: center;
         width: 40px;
         height: 40px;
-        margin-left: auto;
         border-radius: 12px;
         background: rgba(255, 255, 255, 0.9);
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
