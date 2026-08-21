@@ -19,7 +19,6 @@ const emit = defineEmits<{
         <div class="sidebar-header">
             <div>
                 <div class="title">Minecraft 世界地图</div>
-
                 <div class="subtitle">地图导航</div>
             </div>
 
