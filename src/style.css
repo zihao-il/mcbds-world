@@ -1,26 +1,19 @@
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
-html,
-body,
-#app {
-  width: 100%;
-  height: 100%;
-
-  margin: 0;
-  padding: 0;
+html, body, #app {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-  color: #222;
-
-  background: #fff;
+    color: #222222;
+    background: #FFFFFF;
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
+button, input, textarea, select {
+    font: inherit;
 }

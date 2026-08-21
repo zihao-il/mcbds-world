@@ -8,101 +8,62 @@ declare global {
     }
 }
 
-const loadedScripts =
-    new Map<string, Promise<void>>()
+const loadedScripts = new Map<string, Promise<void>>()
 
-function loadScript(
-    src: string
-): Promise<void> {
-
-    const cached =
-        loadedScripts.get(src)
-
+function loadScript(src: string): Promise<void> {
+    const cached = loadedScripts.get(src)
     if (cached) {
         return cached
     }
 
-    const promise =
-        new Promise<void>(
-            (resolve, reject) => {
+    const promise = new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = src
+        script.async = false
 
-                const script =
-                    document.createElement(
-                        'script'
-                    )
+        script.onload = () => {
+            resolve()
+        }
 
-                script.src = src
-                script.async = false
+        script.onerror = () => {
+            reject(new Error(`加载失败: ${src}`))
+        }
+        document.head.appendChild(script)
+    })
 
-                script.onload = () => {
-                    resolve()
-                }
-
-                script.onerror = () => {
-                    reject(
-                        new Error(
-                            `加载失败: ${src}`
-                        )
-                    )
-                }
-
-                document.head.appendChild(
-                    script
-                )
-            }
-        )
-
-    loadedScripts.set(
-        src,
-        promise
-    )
-
+    loadedScripts.set(src, promise)
     return promise
 }
 
-export async function createUnminedMap(
-    element: HTMLElement,
-    mapId: string,
-    dimension: string
-) {
+export async function createUnminedMap(element: HTMLElement, mapId: string, dimension: string) {
     /*
      * 1. 加载 OpenLayers
      */
-    await loadScript(
-        '/unmined/lib/ol.js'
-    )
+    await loadScript('/unmined/lib/ol.js')
 
     /*
      * 2. Context Menu
      */
-    await loadScript(
-        '/unmined/lib/ol-contextmenu.iife.js'
-    )
+    await loadScript('/unmined/lib/ol-contextmenu.iife.js')
 
     /*
      * 3. Toastify
      */
-    await loadScript(
-        '/unmined/lib/toastify-js.js'
-    )
+    await loadScript('/unmined/lib/toastify-js.js')
 
     /*
      * 4. uNmINeD 引擎
      */
-    await loadScript(
-        '/unmined/unmined.js'
-    )
+    await loadScript('/unmined/unmined.js')
 
     /*
      * 5. 当前地图数据
      */
-    const base =
-        `/maps/${mapId}/${dimension}`
+    const base = `/maps/${mapId}/${dimension}`
 
+    await loadStyle(`/unmined/lib/ol.css`)
 
-    await loadStyle(
-        `/unmined/index.css`
-    )
+    await loadStyle(`/unmined/lib/toastify-js.min.css`)
 
 
     /*
@@ -116,47 +77,33 @@ export async function createUnminedMap(
     /*
      * properties
      */
-    await loadScript(
-        `${base}/unmined.map.properties.js`
-    )
+    await loadScript(`${base}/unmined.map.properties.js`)
 
     /*
      * regions
      */
-    await loadScript(
-        `${base}/unmined.map.regions.js`
-    )
+    await loadScript(`${base}/unmined.map.regions.js`)
 
     /*
      * players
      */
-    await loadScript(
-        `${base}/unmined.map.players.js`
-    )
+    await loadScript(`${base}/unmined.map.players.js`)
 
     /*
      * markers
      */
-    await loadScript(
-        `${base}/custom.markers.js`
-    )
+    await loadScript(`${base}/custom.markers.js`)
 
     if (!window.Unmined) {
-        throw new Error(
-            'uNmINeD 未正确加载'
-        )
+        throw new Error('uNmINeD 未正确加载')
     }
 
     if (!window.UnminedMapProperties) {
-        throw new Error(
-            '地图 properties 未加载'
-        )
+        throw new Error('地图 properties 未加载')
     }
 
     if (!window.UnminedRegions) {
-        throw new Error(
-            '地图 regions 未加载'
-        )
+        throw new Error('地图 regions 未加载')
     }
 
     /*
@@ -165,75 +112,42 @@ export async function createUnminedMap(
     const options = {
         ...window.UnminedMapProperties,
 
-        tilePath:
-            `${base}/tiles`,
+        tilePath: `${base}/tiles`,
 
         /*
          * 玩家头像
          */
-        playerImagePath:
-            '/unmined/playerimages'
+        playerImagePath: '/unmined/playerimages'
     }
 
     /*
      * 玩家
      */
-    if (
-        window.UnminedPlayers &&
-        window.UnminedPlayers.length
-    ) {
-        options.playerMarkers =
-            window.Unmined.createPlayerMarkers(
-                window.UnminedPlayers
-            )
+    if (window.UnminedPlayers && window.UnminedPlayers.length) {
+        options.playerMarkers = window.Unmined.createPlayerMarkers(window.UnminedPlayers)
     }
 
     /*
      * 自定义 Marker
      */
-    if (
-        window.UnminedCustomMarkers &&
-        window.UnminedCustomMarkers.isEnabled
-    ) {
-        options.markers =
-            [
-                ...(options.markers ?? []),
-                ...(window.UnminedCustomMarkers.markers ?? [])
-            ]
+    if (window.UnminedCustomMarkers && window.UnminedCustomMarkers.isEnabled) {
+        options.markers = [...(options.markers ?? []), ...(window.UnminedCustomMarkers.markers ?? [])]
     }
 
     /*
      * 创建
      */
-    return new window.Unmined(
-        element,
-        options,
-        window.UnminedRegions
-    )
+    return new window.Unmined(element, options, window.UnminedRegions)
 }
 
-export function cleanupMapScripts(
-    mapId: string,
-    dimension: string
-) {
-    const base =
-        `/maps/${mapId}/${dimension}`
+export function cleanupMapScripts(mapId: string, dimension: string) {
+    const base = `/maps/${mapId}/${dimension}`
 
-    const scripts = [
-        `${base}/unmined.map.properties.js`,
-        `${base}/unmined.map.regions.js`,
-        `${base}/unmined.map.players.js`,
-        `${base}/custom.markers.js`
-    ]
+    const scripts = [`${base}/unmined.map.properties.js`, `${base}/unmined.map.regions.js`, `${base}/unmined.map.players.js`, `${base}/custom.markers.js`]
 
     for (const src of scripts) {
-        const script =
-            document.querySelector(
-                `script[src="${src}"]`
-            )
-
+        const script = document.querySelector(`script[src="${src}"]`)
         script?.remove()
-
         loadedScripts.delete(src)
     }
 
@@ -266,23 +180,12 @@ function loadStyle(href: string): Promise<void> {
         }
 
         link.onerror = () => {
-            console.error(
-                '[uNmINeD] CSS 加载失败:',
-                href
-            )
+            console.error('[uNmINeD] CSS 加载失败:', href)
 
-            reject(
-                new Error(
-                    `CSS 加载失败: ${href}`
-                )
-            )
+            reject(new Error(`CSS 加载失败: ${href}`))
         }
 
         document.head.appendChild(link)
-
-        console.log(
-            '[uNmINeD] 加载 CSS:',
-            href
-        )
+        console.log('[uNmINeD] 加载 CSS:', href)
     })
 }

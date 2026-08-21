@@ -32,43 +32,43 @@ export const maps: MapConfig[] = [{
     id: 'world-2',
     name: '服务器第二期',
     date: '2020年寒假',
-    description: '服务器第二期世界地图',
+    description: '服务器第二张世界地图',
     dimensions: ['overworld', 'nether', 'end']
 }, {
     id: 'world-3',
     name: '服务器第三期',
     date: '2020年暑假',
-    description: '服务器第三期世界地图',
+    description: '服务器第三张世界地图',
     dimensions: ['overworld', 'nether', 'end']
 }, {
     id: 'world-4',
     name: '服务器第四期',
     date: '2021年寒假',
-    description: '服务器第二期世界地图',
+    description: '服务器第四张世界地图',
     dimensions: ['overworld', 'nether', 'end']
 }, {
     id: 'world-5',
     name: '服务器第五期',
     date: '2021年暑假',
-    description: '服务器第五期世界地图',
+    description: '服务器第五张世界地图',
     dimensions: ['overworld', 'nether', 'end']
 }, {
     id: 'world-6',
     name: '服务器第六期',
     date: '2022年寒假',
-    description: '服务器第二期世界地图',
+    description: '服务器第六张世界地图',
     dimensions: ['overworld', 'nether', 'end']
 }, {
     id: 'world-7',
     name: '服务器第七期',
     date: '2022年暑假',
-    description: '服务器第二期世界地图',
+    description: '服务器第七张世界地图',
     dimensions: ['overworld', 'nether', 'end']
 }, {
     id: 'world-8',
     name: '服务器第八期',
     date: '2023年寒假',
-    description: '服务器第二期世界地图',
+    description: '服务器第八张世界地图',
     dimensions: ['overworld', 'nether', 'end']
 }]
 

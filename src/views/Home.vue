@@ -22,39 +22,22 @@ function openMap(
     <main class="home">
         <div class="container">
             <header class="header">
-                <h1>
-                    Minecraft 世界地图
-                </h1>
-
-                <p>
-                    服务器世界地图纪念馆
-                </p>
+                <h1>Minecraft 世界地图</h1>
+                <p>服务器世界地图纪念馆</p>
             </header>
-
             <div class="map-grid">
                 <div
                     v-for="map in maps"
                     :key="map.id"
-                    class="map-card"
-                >
+                    class="map-card">
                     <div class="card-header">
                         <div>
-                            <h2>
-                                {{ map.name }}
-                            </h2>
-
-                            <span>
-    {{ map.date }}
-</span>
+                            <h2>{{ map.name }}</h2>
+                            <span>{{ map.date }}</span>
                         </div>
                     </div>
 
-                    <p
-                        v-if="map.description"
-                        class="description"
-                    >
-                        {{ map.description }}
-                    </p>
+                    <p v-if="map.description" class="description">{{ map.description }}</p>
 
                     <div class="dimensions">
                         <template
@@ -63,12 +46,8 @@ function openMap(
                         >
                             <button
                                 v-if="map.dimensions.includes(dimension.id)"
-                                @click="openMap(map.id, dimension.id)"
-                            >
-<span>
-{{ dimension.icon }}
-</span>
-
+                                @click="openMap(map.id, dimension.id)">
+                                <span>{{ dimension.icon }}</span>
                                 {{ dimension.name }}
                             </button>
                         </template>
@@ -82,15 +61,12 @@ function openMap(
 <style scoped>
 .home {
     box-sizing: border-box;
-
     min-height: 100vh;
-
     padding: 40px 24px;
 }
 
 .container {
     width: min(1200px, 100%);
-
     margin: 0 auto;
 }
 
@@ -100,62 +76,47 @@ function openMap(
 
 .header h1 {
     font-size: 32px;
-
     margin: 0;
 }
 
 .header p {
     margin-top: 8px;
-
     opacity: 0.6;
 }
 
 .map-grid {
     display: grid;
-
-    grid-template-columns:
-        repeat(auto-fill, minmax(280px, 1fr));
-
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
 }
 
 .map-card {
     padding: 20px;
-
     border: 1px solid rgba(128, 128, 128, 0.15);
-
     border-radius: 16px;
-
     background: rgba(128, 128, 128, 0.08);
 }
 
 .card-header {
     display: flex;
-
     justify-content: space-between;
 }
 
 .card-header h2 {
     font-size: 20px;
-
     margin: 0;
 }
 
 .card-header span {
     font-size: 13px;
-
     display: block;
-
     margin-top: 5px;
-
     opacity: 0.5;
 }
 
 .description {
     font-size: 14px;
-
     margin: 16px 0;
-
     opacity: 0.7;
 }
 

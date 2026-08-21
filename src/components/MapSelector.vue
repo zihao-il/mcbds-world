@@ -1,15 +1,12 @@
-<script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
-import { maps } from '../config/maps'
+<script lang="ts" setup>
+import {useRoute, useRouter} from 'vue-router'
+import {maps} from '../config/maps'
 
 const router = useRouter()
 const route = useRoute()
 
 function selectMap(mapId: string) {
-    const dimension =
-        typeof route.params.dimension === 'string'
-            ? route.params.dimension
-            : 'overworld'
+    const dimension = typeof route.params.dimension === 'string' ? route.params.dimension : 'overworld'
 
     router.push({
         name: 'map',
@@ -23,18 +20,16 @@ function selectMap(mapId: string) {
 
 <template>
     <div class="map-selector">
-        <div class="selector-title">
-            世界地图
-        </div>
+        <div class="selector-title">世界地图</div>
 
         <div
             v-for="map in maps"
             :key="map.id"
-            class="map-item"
             :class="{
                 active:
                     route.params.mapId === map.id
             }"
+            class="map-item"
             @click="selectMap(map.id)"
         >
             <div class="map-name">
@@ -65,15 +60,14 @@ function selectMap(mapId: string) {
     align-items: center;
     justify-content: space-between;
 
-    padding: 10px 12px;
     margin-bottom: 6px;
+    padding: 10px 12px;
+
+    cursor: pointer;
+    transition: background-color 0.2s,
+    transform 0.2s;
 
     border-radius: 8px;
-    cursor: pointer;
-
-    transition:
-        background-color 0.2s,
-        transform 0.2s;
 }
 
 .map-item:hover {

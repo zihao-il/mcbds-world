@@ -1,32 +1,19 @@
-<script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
-import {
-    dimensions,
-    getMapById,
-    type Dimension
-} from '../config/maps'
+<script lang="ts" setup>
+import {useRoute, useRouter} from 'vue-router'
+import {type Dimension, dimensions, getMapById} from '../config/maps'
 
 const router = useRouter()
 const route = useRoute()
 
-function selectDimension(
-    dimension: Dimension
-) {
-    const mapId =
-        typeof route.params.mapId === 'string'
-            ? route.params.mapId
-            : ''
-
+function selectDimension(dimension: Dimension) {
+    const mapId = typeof route.params.mapId === 'string' ? route.params.mapId : ''
     const map = getMapById(mapId)
-
     if (!map) {
         return
     }
-
     if (!map.dimensions.includes(dimension)) {
         return
     }
-
     router.push({
         name: 'map',
         params: {
@@ -39,23 +26,18 @@ function selectDimension(
 
 <template>
     <div class="dimension-selector">
-        <div class="selector-title">
-            维度
-        </div>
+        <div class="selector-title">维度</div>
 
         <button
             v-for="dimension in dimensions"
             :key="dimension.id"
-            class="dimension-item"
             :class="{
                 active:
                     route.params.dimension ===
                     dimension.id
             }"
-            @click="
-                selectDimension(dimension.id)
-            "
-        >
+            class="dimension-item"
+            @click="selectDimension(dimension.id)">
             <span class="icon">
                 {{ dimension.icon }}
             </span>
@@ -80,27 +62,18 @@ function selectDimension(
 }
 
 .dimension-item {
-    width: 100%;
-
     display: flex;
     align-items: center;
-
-    gap: 10px;
-
+    width: 100%;
     padding: 10px 12px;
-
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: left;
+    color: inherit;
     border: 0;
     border-radius: 8px;
-
     background: transparent;
-
-    color: inherit;
-
-    cursor: pointer;
-
-    text-align: left;
-
-    transition: background 0.2s;
+    gap: 10px;
 }
 
 .dimension-item:hover {
