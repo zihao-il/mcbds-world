@@ -22,7 +22,7 @@ function openMap(
     <main class="home">
         <div class="container">
             <header class="header">
-                <h1>Minecraft 世界地图</h1>
+                <h1>MCBDS 世界地图</h1>
                 <p>服务器世界地图纪念馆</p>
             </header>
             <div class="map-grid">
@@ -47,7 +47,7 @@ function openMap(
                             <button
                                 v-if="map.dimensions.includes(dimension.id)"
                                 @click="openMap(map.id, dimension.id)">
-                                <span>{{ dimension.icon }}</span>
+                                <img :alt="dimension.name" :src="dimension.icon"/>
                                 {{ dimension.name }}
                             </button>
                         </template>
@@ -86,7 +86,7 @@ function openMap(
 
 .map-grid {
     display: grid;
-    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
     gap: 20px;
 }
 

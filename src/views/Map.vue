@@ -177,7 +177,8 @@ onUnmounted(() => {
                 </div>
 
                 <div class="toolbar-dimension">
-                    {{ getDimensionById(String(route.params.dimension))?.icon }}
+                    <img :alt="getDimensionById(String(route.params.dimension))?.name"
+                         :src="getDimensionById(String(route.params.dimension))?.icon"/>
                 </div>
             </div>
 
@@ -225,6 +226,7 @@ onUnmounted(() => {
  */
 .mobile-toolbar {
     display: none;
+    margin-left: 3.5em;
 }
 
 /*

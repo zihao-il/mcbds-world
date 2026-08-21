@@ -14,12 +14,18 @@ export interface MapConfig {
     dimensions: Dimension[]
 }
 
+
+import overworldIcon from '../assets/overworld.png'
+import netherIcon from '../assets/nether.png'
+import endIcon from '../assets/end.png'
+
+
 export const dimensions: DimensionConfig[] = [{
-    id: 'overworld', name: '主世界', icon: '🌎'
+    id: 'overworld', name: '主世界', icon: overworldIcon
 }, {
-    id: 'nether', name: '下界', icon: '🔥'
+    id: 'nether', name: '下界', icon: netherIcon
 }, {
-    id: 'end', name: '末地', icon: '🌌'
+    id: 'end', name: '末地', icon: endIcon
 }]
 
 export const maps: MapConfig[] = [{

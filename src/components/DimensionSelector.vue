@@ -1,9 +1,25 @@
 <script lang="ts" setup>
 import {useRoute, useRouter} from 'vue-router'
 import {type Dimension, dimensions, getMapById} from '../config/maps'
+import {computed} from "vue";
 
 const router = useRouter()
 const route = useRoute()
+
+const currentMap = computed(() => {
+    const mapId = typeof route.params.mapId === 'string' ? route.params.mapId : ''
+    return getMapById(mapId)
+})
+
+// 当前地图支持的维度
+const availableDimensions = computed(() => {
+    if (!currentMap.value) {
+        return []
+    }
+
+    return dimensions.filter(dimension => currentMap.value!.dimensions.includes(dimension.id)
+    )
+})
 
 function selectDimension(dimension: Dimension) {
     const mapId = typeof route.params.mapId === 'string' ? route.params.mapId : ''
@@ -11,9 +27,11 @@ function selectDimension(dimension: Dimension) {
     if (!map) {
         return
     }
+
     if (!map.dimensions.includes(dimension)) {
         return
     }
+
     router.push({
         name: 'map',
         params: {
@@ -29,22 +47,13 @@ function selectDimension(dimension: Dimension) {
         <div class="selector-title">维度</div>
 
         <button
-            v-for="dimension in dimensions"
+            v-for="dimension in availableDimensions"
             :key="dimension.id"
-            :class="{
-                active:
-                    route.params.dimension ===
-                    dimension.id
-            }"
+            :class="{ active:route.params.dimension ===dimension.id }"
             class="dimension-item"
             @click="selectDimension(dimension.id)">
-            <span class="icon">
-                {{ dimension.icon }}
-            </span>
-
-            <span>
-                {{ dimension.name }}
-            </span>
+            <img :alt="dimension.name" :src="dimension.icon" class="icon"/>
+            <span> {{ dimension.name }}</span>
         </button>
     </div>
 </template>
