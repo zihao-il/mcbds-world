@@ -65,15 +65,6 @@ export async function createUnminedMap(element: HTMLElement, mapId: string, dime
 
     await loadStyle(`/unmined/lib/toastify-js.min.css`)
 
-
-    /*
-     * 清理旧数据
-     */
-    delete window.UnminedMapProperties
-    delete window.UnminedRegions
-    delete window.UnminedPlayers
-    delete window.UnminedCustomMarkers
-
     /*
      * properties
      */
@@ -140,24 +131,34 @@ export async function createUnminedMap(element: HTMLElement, mapId: string, dime
     return new window.Unmined(element, options, window.UnminedRegions)
 }
 
-export function cleanupMapScripts(mapId: string, dimension: string) {
-    const base = `/maps/${mapId}/${dimension}`
+export function cleanupMapScripts(
+    mapId: string,
+    dimension: string
+) {
+    const base = `${import.meta.env.BASE_URL}maps/${mapId}/${dimension}`
 
-    const scripts = [`${base}/unmined.map.properties.js`, `${base}/unmined.map.regions.js`, `${base}/unmined.map.players.js`, `${base}/custom.markers.js`]
+    const scripts = [
+        `${base}/unmined.map.properties.js`,
+        `${base}/unmined.map.regions.js`,
+        `${base}/unmined.map.players.js`,
+        `${base}/custom.markers.js`
+    ]
 
     for (const src of scripts) {
-        const script = document.querySelector(`script[src="${src}"]`)
+        const script =
+            document.querySelector(
+                `script[src="${src}"]`
+            )
+
         script?.remove()
+
         loadedScripts.delete(src)
     }
 
-    /*
-     * 清除旧地图的全局变量
-     */
-    delete window.UnminedMapProperties
-    delete window.UnminedRegions
-    delete window.UnminedPlayers
-    delete window.UnminedCustomMarkers
+    window.UnminedMapProperties = undefined
+    window.UnminedRegions = undefined
+    window.UnminedPlayers = undefined
+    window.UnminedCustomMarkers = undefined
 }
 
 const loadedStyles = new Set<string>()
