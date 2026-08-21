@@ -8,94 +8,56 @@ declare global {
     }
 }
 
-const loadedScripts = new Map<string, Promise<void>>()
+const loadedScripts =
+    new Map<string, Promise<void>>()
 
-function loadScript(src: string): Promise<void> {
-    const oldPromise = loadedScripts.get(src)
+function loadScript(
+    src: string
+): Promise<void> {
 
-    if (oldPromise) {
-        return oldPromise
+    const cached =
+        loadedScripts.get(src)
+
+    if (cached) {
+        return cached
     }
 
-    const promise = new Promise<void>((resolve, reject) => {
-        const script = document.createElement('script')
+    const promise =
+        new Promise<void>(
+            (resolve, reject) => {
 
-        script.src = src
-        script.async = false
+                const script =
+                    document.createElement(
+                        'script'
+                    )
 
-        script.onload = () => {
-            resolve()
-        }
+                script.src = src
+                script.async = false
 
-        script.onerror = () => {
-            reject(new Error(`加载脚本失败: ${src}`))
-        }
+                script.onload = () => {
+                    resolve()
+                }
 
-        document.head.appendChild(script)
-    })
+                script.onerror = () => {
+                    reject(
+                        new Error(
+                            `加载失败: ${src}`
+                        )
+                    )
+                }
 
-    loadedScripts.set(src, promise)
+                document.head.appendChild(
+                    script
+                )
+            }
+        )
+
+    loadedScripts.set(
+        src,
+        promise
+    )
 
     return promise
-}
-
-function removeScript(src: string) {
-    const scripts = document.querySelectorAll(
-        `script[src="${src}"]`
-    )
-
-    scripts.forEach(script => {
-        script.remove()
-    })
-
-    loadedScripts.delete(src)
-}
-
-export async function loadUnminedCore() {
-    await loadScript('/unmined/unmined.js')
-}
-
-export async function loadMapData(
-    mapId: string,
-    dimension: string
-) {
-    const basePath = `/maps/${mapId}/${dimension}`
-
-    await loadScript(
-        `${basePath}/unmined.map.properties.js`
-    )
-
-    await loadScript(
-        `${basePath}/unmined.map.regions.js`
-    )
-
-    const playersPath =
-        `${basePath}/unmined.map.players.js`
-
-    const markersPath =
-        `${basePath}/custom.markers.js`
-
-    try {
-        await loadScript(playersPath)
-    } catch {
-        console.warn(
-            `没有找到 ${playersPath}`
-        )
-    }
-
-    try {
-        await loadScript(markersPath)
-    } catch {
-        console.warn(
-            `没有找到 ${markersPath}`
-        )
-    }
-
-    return {
-        basePath,
-        properties: window.UnminedMapProperties,
-        regions: window.UnminedRegions
-    }
 }
 
 export async function createUnminedMap(
@@ -103,15 +65,80 @@ export async function createUnminedMap(
     mapId: string,
     dimension: string
 ) {
-    await loadUnminedCore()
+    /*
+     * 1. 加载 OpenLayers
+     */
+    await loadScript(
+        '/unmined/lib/ol.js'
+    )
 
-    const {
-        basePath,
-        properties,
-        regions
-    } = await loadMapData(
-        mapId,
-        dimension
+    /*
+     * 2. Context Menu
+     */
+    await loadScript(
+        '/unmined/lib/ol-contextmenu.iife.js'
+    )
+
+    /*
+     * 3. Toastify
+     */
+    await loadScript(
+        '/unmined/lib/toastify-js.js'
+    )
+
+    /*
+     * 4. uNmINeD 引擎
+     */
+    await loadScript(
+        '/unmined/unmined.js'
+    )
+
+    /*
+     * 5. 当前地图数据
+     */
+    const base =
+        `/maps/${mapId}/${dimension}`
+
+
+    await loadStyle(
+        `/unmined/index.css`
+    )
+
+
+    /*
+     * 清理旧数据
+     */
+    delete window.UnminedMapProperties
+    delete window.UnminedRegions
+    delete window.UnminedPlayers
+    delete window.UnminedCustomMarkers
+
+    /*
+     * properties
+     */
+    await loadScript(
+        `${base}/unmined.map.properties.js`
+    )
+
+    /*
+     * regions
+     */
+    await loadScript(
+        `${base}/unmined.map.regions.js`
+    )
+
+    /*
+     * players
+     */
+    await loadScript(
+        `${base}/unmined.map.players.js`
+    )
+
+    /*
+     * markers
+     */
+    await loadScript(
+        `${base}/custom.markers.js`
     )
 
     if (!window.Unmined) {
@@ -120,49 +147,32 @@ export async function createUnminedMap(
         )
     }
 
-    if (!properties) {
+    if (!window.UnminedMapProperties) {
         throw new Error(
-            'UnminedMapProperties 未加载'
+            '地图 properties 未加载'
         )
     }
 
-    if (!regions) {
+    if (!window.UnminedRegions) {
         throw new Error(
-            'UnminedRegions 未加载'
+            '地图 regions 未加载'
         )
-    }
-
-    const options = {
-        ...properties,
-
-        /*
-         * uNmINeD 修改后的 tilePath
-         */
-        tilePath:
-            `${basePath}/tiles`,
-
-        /*
-         * 固定资源
-         */
-        playerImagePath:
-            '/unmined/playerimages',
-
-        customPin:
-            '/unmined/custom.pin.png'
     }
 
     /*
-     * custom.markers.js
+     * 当前地图配置
      */
-    if (
-        window.UnminedCustomMarkers &&
-        window.UnminedCustomMarkers.isEnabled &&
-        window.UnminedCustomMarkers.markers
-    ) {
-        options.markers = [
-            ...(options.markers ?? []),
-            ...window.UnminedCustomMarkers.markers
-        ]
+    const options = {
+        ...window.UnminedMapProperties,
+
+        tilePath:
+            `${base}/tiles`,
+
+        /*
+         * 玩家头像
+         */
+        playerImagePath:
+            '/unmined/playerimages'
     }
 
     /*
@@ -170,7 +180,7 @@ export async function createUnminedMap(
      */
     if (
         window.UnminedPlayers &&
-        window.UnminedPlayers.length > 0
+        window.UnminedPlayers.length
     ) {
         options.playerMarkers =
             window.Unmined.createPlayerMarkers(
@@ -178,44 +188,101 @@ export async function createUnminedMap(
             )
     }
 
-    const instance =
-        new window.Unmined(
-            element,
-            options,
-            regions
-        )
+    /*
+     * 自定义 Marker
+     */
+    if (
+        window.UnminedCustomMarkers &&
+        window.UnminedCustomMarkers.isEnabled
+    ) {
+        options.markers =
+            [
+                ...(options.markers ?? []),
+                ...(window.UnminedCustomMarkers.markers ?? [])
+            ]
+    }
 
-    return instance
+    /*
+     * 创建
+     */
+    return new window.Unmined(
+        element,
+        options,
+        window.UnminedRegions
+    )
 }
 
 export function cleanupMapScripts(
     mapId: string,
     dimension: string
 ) {
-    const basePath =
+    const base =
         `/maps/${mapId}/${dimension}`
 
-    removeScript(
-        `${basePath}/unmined.map.properties.js`
-    )
+    const scripts = [
+        `${base}/unmined.map.properties.js`,
+        `${base}/unmined.map.regions.js`,
+        `${base}/unmined.map.players.js`,
+        `${base}/custom.markers.js`
+    ]
 
-    removeScript(
-        `${basePath}/unmined.map.regions.js`
-    )
+    for (const src of scripts) {
+        const script =
+            document.querySelector(
+                `script[src="${src}"]`
+            )
 
-    removeScript(
-        `${basePath}/unmined.map.players.js`
-    )
+        script?.remove()
 
-    removeScript(
-        `${basePath}/custom.markers.js`
-    )
+        loadedScripts.delete(src)
+    }
 
     /*
-     * 删除旧的全局变量
+     * 清除旧地图的全局变量
      */
     delete window.UnminedMapProperties
     delete window.UnminedRegions
     delete window.UnminedPlayers
     delete window.UnminedCustomMarkers
+}
+
+const loadedStyles = new Set<string>()
+
+function loadStyle(href: string): Promise<void> {
+    if (loadedStyles.has(href)) {
+        return Promise.resolve()
+    }
+
+    return new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+
+        link.rel = 'stylesheet'
+        link.type = 'text/css'
+        link.href = href
+
+        link.onload = () => {
+            loadedStyles.add(href)
+            resolve()
+        }
+
+        link.onerror = () => {
+            console.error(
+                '[uNmINeD] CSS 加载失败:',
+                href
+            )
+
+            reject(
+                new Error(
+                    `CSS 加载失败: ${href}`
+                )
+            )
+        }
+
+        document.head.appendChild(link)
+
+        console.log(
+            '[uNmINeD] 加载 CSS:',
+            href
+        )
+    })
 }

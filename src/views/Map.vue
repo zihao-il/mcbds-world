@@ -1,9 +1,25 @@
-<script lang="ts" setup>
-import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
+<script setup lang="ts">
+import {
+    nextTick,
+    onMounted,
+    onUnmounted,
+    ref,
+    watch
+} from 'vue'
+
+import { useRoute, useRouter } from 'vue-router'
+
 import MapSidebar from '../components/MapSidebar.vue'
-import {getDimensionById, getMapById} from '../config/maps'
-import {cleanupMapScripts, createUnminedMap} from '../utils/unmined'
+
+import {
+    getMapById,
+    getDimensionById
+} from '../config/maps'
+
+import {
+    createUnminedMap,
+    cleanupMapScripts
+} from '../utils/unmined'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +29,8 @@ const mapElement =
 
 const loading = ref(false)
 const error = ref<string | null>(null)
+
+const sidebarOpen = ref(false)
 
 let unmined: any = null
 
@@ -71,9 +89,6 @@ async function loadMap() {
     error.value = null
 
     try {
-        /*
-         * 销毁旧地图
-         */
         if (unmined) {
             if (
                 typeof unmined.destroy ===
@@ -85,9 +100,6 @@ async function loadMap() {
             unmined = null
         }
 
-        /*
-         * 清理旧地图 JS
-         */
         if (
             currentMapId &&
             currentDimension
@@ -101,22 +113,19 @@ async function loadMap() {
         currentMapId = mapId
         currentDimension = dimension
 
-        /*
-         * 清空地图 DOM
-         */
         mapElement.value.innerHTML = ''
 
         await nextTick()
 
-        /*
-         * 创建 uNmINeD
-         */
         unmined =
             await createUnminedMap(
                 mapElement.value,
                 mapId,
                 dimension
             )
+
+        // 手机切换地图后自动关闭菜单
+        sidebarOpen.value = false
     } catch (e) {
         console.error(e)
 
@@ -127,6 +136,15 @@ async function loadMap() {
     } finally {
         loading.value = false
     }
+}
+
+function toggleSidebar() {
+    sidebarOpen.value =
+        !sidebarOpen.value
+}
+
+function closeSidebar() {
+    sidebarOpen.value = false
 }
 
 onMounted(() => {
@@ -169,12 +187,62 @@ onUnmounted(() => {
 
 <template>
     <div class="map-page">
-        <MapSidebar/>
+
+        <!-- PC Sidebar -->
+        <MapSidebar
+            class="desktop-sidebar"
+        />
+
+        <!-- 手机 Sidebar -->
+        <Transition name="sidebar">
+            <MapSidebar
+                v-if="sidebarOpen"
+                class="mobile-sidebar"
+                mobile
+                @close="closeSidebar"
+            />
+        </Transition>
+
+        <!-- 手机遮罩 -->
+        <Transition name="overlay">
+            <div
+                v-if="sidebarOpen"
+                class="mobile-overlay"
+                @click="closeSidebar"
+            ></div>
+        </Transition>
 
         <main class="map-container">
+
+            <!-- 手机顶部工具栏 -->
+            <div class="mobile-toolbar">
+
+                <button
+                    class="menu-button"
+                    @click="toggleSidebar"
+                >
+                    ☰
+                </button>
+
+                <div class="toolbar-title">
+                    {{ getMapById(
+                    String(route.params.mapId)
+                )?.name }}
+                </div>
+
+                <div class="toolbar-dimension">
+                    {{
+                        getDimensionById(
+                            String(route.params.dimension)
+                        )?.icon
+                    }}
+                </div>
+            </div>
+
+            <!-- 地图 -->
             <div
-                id="map"
                 ref="mapElement"
+                id="map"
             ></div>
 
             <div
@@ -200,18 +268,19 @@ onUnmounted(() => {
                     </small>
                 </div>
             </div>
+
         </main>
     </div>
 </template>
 
 <style scoped>
 .map-page {
-    display: flex;
-    overflow: hidden;
-
     width: 100vw;
-
     height: 100vh;
+
+    display: flex;
+
+    overflow: hidden;
 }
 
 .map-container {
@@ -228,29 +297,50 @@ onUnmounted(() => {
     height: 100%;
 }
 
+/*
+ * 手机工具栏
+ */
+.mobile-toolbar {
+    display: none;
+}
+
+/*
+ * 手机 Sidebar 默认隐藏
+ */
+.mobile-sidebar {
+    display: none;
+}
+
+/*
+ * 遮罩
+ */
+.mobile-overlay {
+    display: none;
+}
+
 .loading,
 .error {
     position: absolute;
 
+    inset: 0;
+
     display: flex;
 
     align-items: center;
-
     justify-content: center;
-    pointer-events: none;
 
-    inset: 0;
+    pointer-events: none;
 }
 
 .loading-box,
 .error-box {
     padding: 16px 24px;
 
-    color: white;
-
     border-radius: 12px;
 
     background: rgba(0, 0, 0, 0.75);
+
+    color: white;
 
     backdrop-filter: blur(10px);
 }
@@ -265,5 +355,189 @@ onUnmounted(() => {
     margin-top: 8px;
 
     opacity: 0.7;
+}
+
+/* =========================
+   手机
+   ========================= */
+
+@media (max-width: 768px) {
+
+    .desktop-sidebar {
+        display: none;
+    }
+
+    .mobile-sidebar {
+        display: flex;
+
+        position: fixed;
+
+        top: 0;
+        left: 0;
+        bottom: 0;
+
+        z-index: 1001;
+    }
+
+    .mobile-toolbar {
+        position: absolute;
+
+        top: env(
+            safe-area-inset-top,
+            0px
+        );
+
+        left: 0;
+        right: 0;
+
+        height: 52px;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 10px;
+
+        padding:
+            6px 10px;
+
+        z-index: 100;
+
+        pointer-events: none;
+    }
+
+    .menu-button {
+        width: 42px;
+        height: 42px;
+
+        flex-shrink: 0;
+
+        border: 0;
+
+        border-radius: 12px;
+
+        background: rgba(
+            255,
+            255,
+            255,
+            0.9
+        );
+
+        color: #222;
+
+        font-size: 20px;
+
+        box-shadow:
+            0 2px 10px
+            rgba(0, 0, 0, 0.18);
+
+        cursor: pointer;
+
+        pointer-events: auto;
+    }
+
+    .toolbar-title {
+        max-width: 180px;
+
+        overflow: hidden;
+
+        white-space: nowrap;
+
+        text-overflow: ellipsis;
+
+        padding: 8px 12px;
+
+        border-radius: 10px;
+
+        background: rgba(
+            255,
+            255,
+            255,
+            0.9
+        );
+
+        font-size: 14px;
+        font-weight: 600;
+
+        box-shadow:
+            0 2px 10px
+            rgba(0, 0, 0, 0.12);
+    }
+
+    .toolbar-dimension {
+        width: 40px;
+        height: 40px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        margin-left: auto;
+
+        border-radius: 12px;
+
+        background: rgba(
+            255,
+            255,
+            255,
+            0.9
+        );
+
+        font-size: 20px;
+
+        box-shadow:
+            0 2px 10px
+            rgba(0, 0, 0, 0.12);
+    }
+
+    .mobile-overlay {
+        display: block;
+
+        position: fixed;
+
+        inset: 0;
+
+        z-index: 1000;
+
+        background:
+            rgba(0, 0, 0, 0.35);
+
+        backdrop-filter: blur(2px);
+    }
+
+    /*
+     * Sidebar 滑入
+     */
+    .sidebar-enter-active,
+    .sidebar-leave-active {
+        transition:
+            transform 0.25s ease;
+    }
+
+    .sidebar-enter-from,
+    .sidebar-leave-to {
+        transform:
+            translateX(-100%);
+    }
+
+    /*
+     * 遮罩淡入
+     */
+    .overlay-enter-active,
+    .overlay-leave-active {
+        transition:
+            opacity 0.2s ease;
+    }
+
+    .overlay-enter-from,
+    .overlay-leave-to {
+        opacity: 0;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+    }
 }
 </style>

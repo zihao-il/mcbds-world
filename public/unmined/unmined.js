@@ -409,7 +409,7 @@ class Unmined {
     }
 
     static defaultPlayerMarkerStyle = {
-        image: "playerimages/default.png",
+        image: "/unmined/playerimages/default.png",
         imageAnchor: [0.5, 0.5],
         imageScale: 0.25,
 
@@ -792,3 +792,4 @@ class Unmined {
 
 
 }
+window.Unmined = Unmined;
