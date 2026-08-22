@@ -73,7 +73,7 @@ function openMap(
                                 }}</span>
                         </div>
                         <div v-if="levelData[map.id].lastOpenedWithVersion">
-                            <span class="version-label">最后版本：</span>
+                            <span class="version-label">最终版本：</span>
                             <span class="version-value">{{
                                     formatVersion(levelData[map.id].lastOpenedWithVersion)
                                 }}</span>
