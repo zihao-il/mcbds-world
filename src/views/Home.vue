@@ -1,8 +1,32 @@
 <script lang="ts" setup>
 import {useRouter} from 'vue-router'
 import {dimensions, maps} from '../config/maps'
+import {loadLevelDat} from '../utils/levelDat'
+import {onMounted, ref} from 'vue'
 
 const router = useRouter()
+const levelData = ref<Record<string, any>>({})
+
+async function loadAllLevelData() {
+    await Promise.all(maps.map(async (map) => {
+        try {
+            console.log(loadLevelDat(map.id))
+            levelData.value[map.id] = await loadLevelDat(map.id)
+        } catch (error) {
+            console.error(`加载 ${map.id} 的 level.dat 失败:`, error)
+        }
+    }))
+}
+
+function formatVersion(versionArray: number[]): string {
+    if (!versionArray || versionArray.length < 2) return ''
+    return versionArray.slice(0, -2).join('.')
+}
+
+onMounted(() => {
+    loadAllLevelData()
+})
+
 
 function openMap(
     mapId: string,
@@ -16,6 +40,7 @@ function openMap(
         }
     })
 }
+
 </script>
 
 <template>
@@ -38,6 +63,22 @@ function openMap(
                     </div>
 
                     <p v-if="map.description" class="description">{{ map.description }}</p>
+
+
+                    <div v-if="levelData[map.id]" class="version-info">
+                        <div v-if="levelData[map.id].MinimumCompatibleClientVersion">
+                            <span class="version-label">开服版本：</span>
+                            <span class="version-value">{{
+                                    formatVersion(levelData[map.id].MinimumCompatibleClientVersion)
+                                }}</span>
+                        </div>
+                        <div v-if="levelData[map.id].lastOpenedWithVersion">
+                            <span class="version-label">最后版本：</span>
+                            <span class="version-value">{{
+                                    formatVersion(levelData[map.id].lastOpenedWithVersion)
+                                }}</span>
+                        </div>
+                    </div>
 
                     <div class="dimensions">
                         <template
@@ -138,4 +179,23 @@ function openMap(
 .dimensions button:hover {
     background: rgba(64, 128, 255, 0.2);
 }
+
+.version-info {
+    font-size: 13px;
+    margin: 12px 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(128, 128, 128, 0.06);
+}
+
+.version-label {
+    opacity: 0.6;
+}
+
+.version-value {
+    font-family: monospace;
+    font-weight: 500;
+}
+
+
 </style>
