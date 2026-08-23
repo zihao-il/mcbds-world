@@ -10,7 +10,6 @@ const levelData = ref<Record<string, any>>({})
 async function loadAllLevelData() {
     await Promise.all(maps.map(async (map) => {
         try {
-            console.log(loadLevelDat(map.id))
             levelData.value[map.id] = await loadLevelDat(map.id)
         } catch (error) {
             console.error(`加载 ${map.id} 的 level.dat 失败:`, error)
@@ -41,6 +40,43 @@ function openMap(
     })
 }
 
+
+// 将 Tick 转换为可读时间格式（天、时、分、秒）
+function formatWorldAge(ticks: bigint | number): string {
+    console.log(ticks)
+    if (ticks === undefined || ticks === null) return '未知'
+    // 统一转为 number（BigInt 可能超出 Number 范围，但 Minecraft 的 Time 值在安全范围内）
+    const ticksNum = typeof ticks === 'bigint' ? Number(ticks) : ticks
+    if (ticksNum < 0) return '未知'
+    const totalSeconds = Math.floor(ticksNum / 20)
+    const days = Math.floor(totalSeconds / 86400)
+    const hours = Math.floor((totalSeconds % 86400) / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+
+    if (days > 0) {
+        return `${days}天 ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    }
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}
+
+// 将 Unix 时间戳（秒级）转换为本地日期时间字符串
+function formatLastPlayed(timestamp: bigint | number): string {
+    if (timestamp === undefined || timestamp === null) return '未知'
+    const tsNum = typeof timestamp === 'bigint' ? Number(timestamp) : timestamp
+    if (tsNum < 0) return '未知'
+    const date = new Date(tsNum * 1000)
+    return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    })
+}
+
 </script>
 
 <template>
@@ -66,17 +102,19 @@ function openMap(
 
 
                     <div v-if="levelData[map.id]" class="version-info">
-                        <div v-if="levelData[map.id].MinimumCompatibleClientVersion">
-                            <span class="version-label">开服版本：</span>
-                            <span class="version-value">{{
-                                    formatVersion(levelData[map.id].MinimumCompatibleClientVersion)
-                                }}</span>
-                        </div>
                         <div v-if="levelData[map.id].lastOpenedWithVersion">
                             <span class="version-label">最终版本：</span>
                             <span class="version-value">{{
                                     formatVersion(levelData[map.id].lastOpenedWithVersion)
                                 }}</span>
+                        </div>
+                        <div v-if="levelData[map.id].Time">
+                            <span class="version-label">世界时长：</span>
+                            <span class="version-value">{{ formatWorldAge(levelData[map.id].Time) }}</span>
+                        </div>
+                        <div v-if="levelData[map.id].LastPlayed">
+                            <span class="version-label">最后游玩：</span>
+                            <span class="version-value">{{ formatLastPlayed(levelData[map.id].LastPlayed) }}</span>
                         </div>
                     </div>
 

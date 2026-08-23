@@ -76,6 +76,12 @@ export const maps: MapConfig[] = [{
     date: '2023年寒假',
     description: '服务器第八张世界地图',
     dimensions: ['overworld', 'nether', 'end']
+}, {
+    id: 'realm',
+    name: '领域器',
+    date: '2024年5月至今',
+    description: '领域服部分区块地图',
+    dimensions: ['overworld']
 }]
 
 export function getMapById(id: string): MapConfig | undefined {
