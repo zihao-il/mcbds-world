@@ -43,7 +43,6 @@ function openMap(
 
 // 将 Tick 转换为可读时间格式（天、时、分、秒）
 function formatWorldAge(ticks: bigint | number): string {
-    console.log(ticks)
     if (ticks === undefined || ticks === null) return '未知'
     // 统一转为 number（BigInt 可能超出 Number 范围，但 Minecraft 的 Time 值在安全范围内）
     const ticksNum = typeof ticks === 'bigint' ? Number(ticks) : ticks
