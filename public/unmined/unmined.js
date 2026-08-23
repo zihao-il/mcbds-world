@@ -581,7 +581,7 @@ class Unmined {
 
             contextmenu.clear();
             contextmenu.push({
-                text: `Copy /tp ${coordinates[0]} ~ ${coordinates[1]}`,
+                text: `复制 /tp ${coordinates[0]} ~ ${coordinates[1]}`,
                 callback: () => {
                     Unmined.copyToClipboard(`/tp ${coordinates[0]} ~ ${coordinates[1]}`);
                 }
@@ -589,7 +589,7 @@ class Unmined {
             contextmenu.push('-');
 
             contextmenu.push({
-                text: `Place red dot marker here`,
+                text: `在此处放置红点标记`,
                 classname: 'menuitem-reddot',
                 callback: () => {
                     this.placeRedDotMarker(coordinates);
@@ -597,13 +597,13 @@ class Unmined {
             });
             if (this.redDotMarker.getCoordinates()) {
                 contextmenu.push({
-                    text: `Copy marker link`,
+                    text: `复制标记坐标`,
                     callback: () => {
                         Unmined.copyToClipboard(window.location.href);
                     }
                 });
                 contextmenu.push({
-                    text: `Clear marker`,
+                    text: `清除标记`,
                     callback: () => {
                         this.placeRedDotMarker(undefined);
                     }
@@ -615,7 +615,7 @@ class Unmined {
                 contextmenu.push(
                     {
                         classname: this.#options.showPlayers ? 'menuitem-checked' : 'menuitem-unchecked',
-                        text: 'Show players',
+                        text: '显示玩家',
                         callback: () => this.togglePlayers()
                     })
             }
@@ -624,7 +624,7 @@ class Unmined {
                 contextmenu.push(
                     {
                         classname: this.#options.showMarkers ? 'menuitem-checked' : 'menuitem-unchecked',
-                        text: 'Show markers',
+                        text: '显示标记',
                         callback: () => this.toggleMarkers()
                     })
             }
@@ -638,19 +638,19 @@ class Unmined {
                 contextmenu.push(
                     {
                         classname: this.#options.showGrid ? 'menuitem-checked' : 'menuitem-unchecked',
-                        text: 'Show grid',
+                        text: '显示网格',
                         callback: () => this.toggleGrid()
                     })
                 contextmenu.push(
                     {
                         classname: this.#options.denseGrid ? 'menuitem-checked' : 'menuitem-unchecked',
-                        text: 'Dense grid',
+                        text: '密集网格',
                         callback: () => this.toggleGridInterval()
                     })
                 contextmenu.push(
                     {
                         classname: this.#options.binaryGrid ? 'menuitem-checked' : 'menuitem-unchecked',
-                        text: 'Binary coordinates',
+                        text: '二进制坐标',
                         callback: () => this.toggleBinaryGrid()
                     })
             }
@@ -658,7 +658,7 @@ class Unmined {
             contextmenu.push(
                 {
                     classname: this.#options.showScaleBar ? 'menuitem-checked' : 'menuitem-unchecked',
-                    text: 'Show scalebar',
+                    text: '显示比例尺',
                     callback: () => this.toggleScaleBar()
                 })
 

@@ -65,6 +65,10 @@ export async function createUnminedMap(element: HTMLElement, mapId: string, dime
 
     await loadStyle(`/unmined/lib/toastify-js.min.css`)
 
+    await loadStyle(`/unmined/lib/ol-contextmenu.css`)
+
+    await loadStyle(`/unmined/lib/index.css`)
+
     /*
      * properties
      */
@@ -187,6 +191,5 @@ function loadStyle(href: string): Promise<void> {
         }
 
         document.head.appendChild(link)
-        console.log('[uNmINeD] 加载 CSS:', href)
     })
 }
