@@ -549,12 +549,12 @@ class Unmined {
 
     static copyToClipboard(text, toast) {
         if (!navigator || !navigator.clipboard || !navigator.clipboard.writeText) {
-            Unmined.toast('Clipboard is not accessible')
+            Unmined.toast('剪贴板无法访问')
             return;
         }
 
         navigator.clipboard.writeText(text);
-        Unmined.toast(toast ?? "Copied!");
+        Unmined.toast(toast ?? "已复制!");
     }
 
     static toast(message) {
