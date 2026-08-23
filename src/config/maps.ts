@@ -78,7 +78,7 @@ export const maps: MapConfig[] = [{
     dimensions: ['overworld', 'nether', 'end']
 }, {
     id: 'realm',
-    name: '领域器',
+    name: '领域服',
     date: '2024年5月至今',
     description: '领域服部分区块地图',
     dimensions: ['overworld']
