@@ -22,6 +22,14 @@
   position: absolute;
 }
 
+div.ol-mouse-position {
+  background-color: white;
+  padding: 6px;
+  border-radius: 3px;
+  box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.2);
+  opacity: 0.85;
+}
+
 .ol-scale-line {
   background: var(--ol-partial-background-color);
   border-radius: 4px;
