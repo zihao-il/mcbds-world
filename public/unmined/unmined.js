@@ -1,3 +1,15 @@
+// Constants for magic numbers
+const REGION_SIZE = 512;
+const GROUP_SIZE = 32;
+const BITS_PER_INT = 32;
+const WORLD_TILE_SIZE = 256;
+const DEFAULT_BASE_INTERVAL = 16;
+const DEFAULT_DPI_SCALE = 1.0;
+const TOAST_DURATION = 2000;
+const GRATICULE_TARGET_SIZE_NORMAL = 120;
+const GRATICULE_TARGET_SIZE_DENSE = 60;
+
+
 class RegionMap {
 
     constructor(regionMap, tileSize, worldMinX, worldMinZ, worldWidth, worldHeight) {
@@ -7,6 +19,12 @@ class RegionMap {
         this.worldMinZ = worldMinZ;
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
+        // Cache regionMap as Map for O(1) lookup
+        this.regionMapCache = new Map();
+        for (const region of regionMap) {
+            const key = `${region.x},${region.z}`;
+            this.regionMapCache.set(key, region);
+        }
     }
 
     hasTile(tileX, tileZ, unminedZoomLevel) {
@@ -29,25 +47,24 @@ class RegionMap {
 
 
         const tileRegionPoint = {
-            x: Math.floor(tileBlockPoint.x / 512),
-            z: Math.floor(tileBlockPoint.z / 512)
+            x: Math.floor(tileBlockPoint.x / REGION_SIZE),
+            z: Math.floor(tileBlockPoint.z / REGION_SIZE)
         };
-        const tileRegionSize = Math.ceil(tileBlockSize / 512);
+        const tileRegionSize = Math.ceil(tileBlockSize / REGION_SIZE);
 
         for (let x = tileRegionPoint.x; x < tileRegionPoint.x + tileRegionSize; x++) {
             for (let z = tileRegionPoint.z; z < tileRegionPoint.z + tileRegionSize; z++) {
-                const group = {
-                    x: Math.floor(x / 32),
-                    z: Math.floor(z / 32)
-                };
-                const regionMap = this.regionMap.find(e => e.x == group.x && e.z == group.z);
+                const groupX = Math.floor(x / GROUP_SIZE);
+                const groupZ = Math.floor(z / GROUP_SIZE);
+                const key = `${groupX},${groupZ}`;
+                const regionMap = this.regionMapCache.get(key);
                 if (regionMap) {
-                    const relX = x - group.x * 32;
-                    const relZ = z - group.z * 32;
-                    const inx = relZ * 32 + relX;
-                    var b = regionMap.m[Math.floor(inx / 32)];
-                    var bit = inx % 32;
-                    var found = (b & (1 << bit)) != 0;
+                    const relX = x - groupX * GROUP_SIZE;
+                    const relZ = z - groupZ * GROUP_SIZE;
+                    const inx = relZ * GROUP_SIZE + relX;
+                    const b = regionMap.m[Math.floor(inx / BITS_PER_INT)];
+                    const bit = inx % BITS_PER_INT;
+                    const found = (b & (1 << bit)) !== 0;
                     if (found) return true;
                 }
             }
@@ -63,6 +80,7 @@ class RedDotMarker {
     #map = undefined;
     #dataProjection = undefined;
     #viewProjection = undefined;
+    #hashChangeHandler = undefined;
 
     constructor(map, dataProjection, viewProjection) {
         this.#map = map;
@@ -79,8 +97,24 @@ class RedDotMarker {
 
         this.#map.addLayer(this.#layer);
 
-        window.addEventListener('hashchange', (e) => { this.#hashChanged(e.newURL) });
+        this.#hashChangeHandler = (e) => { this.#hashChanged(e.newURL) };
+        window.addEventListener('hashchange', this.#hashChangeHandler);
         this.#hashChanged(window.location.href);
+    }
+
+    destroy() {
+        if (this.#hashChangeHandler) {
+            window.removeEventListener('hashchange', this.#hashChangeHandler);
+            this.#hashChangeHandler = undefined;
+        }
+        if (this.#layer) {
+            this.#map.removeLayer(this.#layer);
+            this.#layer = undefined;
+        }
+        if (this.#source) {
+            this.#source.clear();
+            this.#source = undefined;
+        }
     }
 
     getCoordinates() {
@@ -90,7 +124,7 @@ class RedDotMarker {
     static getCoordinatesFromUrlHash(hash) {
         if (!hash || hash.length <= 1) return undefined;
 
-        const q = new URLSearchParams(hash.substring(1))
+        const q = new URLSearchParams(hash.substring(1));
         const rx = q.get('rx');
         const rz = q.get('rz');
         if (!rx || !rz) return undefined;
@@ -192,7 +226,7 @@ class Unmined {
 
     constructor(mapElement, options, regions) {
 
-        const worldTileSize = 256;
+        const worldTileSize = WORLD_TILE_SIZE;
 
         this.#options = { ...Unmined.defaultOptions, ...options };
 
@@ -205,7 +239,7 @@ class Unmined {
 
         this.regionMap = new RegionMap(regions, worldTileSize, worldMinX, worldMinZ, worldWidth, worldHeight);
 
-        const dpiScale = window.devicePixelRatio ?? 1.0;
+        const dpiScale = window.devicePixelRatio ?? DEFAULT_DPI_SCALE;
 
         this.#initProjections(
             Math.max(
@@ -232,14 +266,14 @@ class Unmined {
         }
 
 
-        var tileGrid = new ol.tilegrid.TileGrid({
+        const tileGrid = new ol.tilegrid.TileGrid({
             extent: mapExtent,
             origin: [0, 0],
             resolutions: resolutions,
             tileSize: worldTileSize / dpiScale
         });
 
-        var unminedLayer =
+        const unminedLayer =
             new ol.layer.Tile({
                 source: new ol.source.XYZ({
                     projection: this.viewProjection,
@@ -263,13 +297,14 @@ class Unmined {
                                 .replace('{x}', tileX);
                             return url;
                         }
-                        else
+                        else {
                             return undefined;
+                        }
                     }
                 })
             });
 
-        var mousePositionControl = new ol.control.MousePosition({
+        const mousePositionControl = new ol.control.MousePosition({
             coordinateFormat: ol.coordinate.createStringXY(0),
             projection: this.dataProjection
         });
@@ -350,18 +385,18 @@ class Unmined {
     }
 
     createMarkersLayer(markers) {
-        var features = [];
+        const features = [];
 
-        for (var i = 0; i < markers.length; i++) {
-            var item = markers[i];
-            var longitude = item.x;
-            var latitude = item.z;
+        for (let i = 0; i < markers.length; i++) {
+            const item = markers[i];
+            const longitude = item.x;
+            const latitude = item.z;
 
-            var feature = new ol.Feature({
+            const feature = new ol.Feature({
                 geometry: new ol.geom.Point(ol.proj.transform([longitude, latitude], this.dataProjection, this.viewProjection))
             });
 
-            var style = new ol.style.Style();
+            const style = new ol.style.Style();
             if (item.image)
                 style.setImage(new ol.style.Icon({
                     src: item.image,
@@ -398,11 +433,11 @@ class Unmined {
             features.push(feature);
         }
 
-        var vectorSource = new ol.source.Vector({
+        const vectorSource = new ol.source.Vector({
             features: features
         });
 
-        var vectorLayer = new ol.layer.Vector({
+        const vectorLayer = new ol.layer.Vector({
             source: vectorSource
         });
         return vectorLayer;
@@ -426,7 +461,7 @@ class Unmined {
     }
 
     static playerToMarker(player) {
-        var marker = Object.assign({}, Unmined.defaultPlayerMarkerStyle);
+        const marker = Object.assign({}, Unmined.defaultPlayerMarkerStyle);
         marker.x = player.x;
         marker.z = player.z;
         marker.text = player.name;
@@ -468,7 +503,7 @@ class Unmined {
         const graticuleIntervals = new Array(intervalCount);
 
         if (this.#options.binaryGrid) {
-            let base = 16;
+            let base = DEFAULT_BASE_INTERVAL;
             for (let z = 0; z < intervalCount; ++z) {
                 const intervalInBlocks = base;
                 const intervalInDegrees = ol.proj.transform([intervalInBlocks, intervalInBlocks], this.dataProjection, this.viewProjection)[0];
@@ -480,10 +515,10 @@ class Unmined {
             let base = 10;
             let factorIndex = 0;
             for (let z = 0; z < intervalCount; ++z) {
-                const intervalInBlocks = base * factors[factorIndex++ % factors.length]
+                const intervalInBlocks = base * factors[factorIndex++ % factors.length];
                 const intervalInDegrees = ol.proj.transform([intervalInBlocks, intervalInBlocks], this.dataProjection, this.viewProjection)[0];
                 graticuleIntervals[intervalCount - 1 - z] = intervalInDegrees;
-                if (factorIndex % factors.length == 0) base *= 10;
+                if (factorIndex % factors.length === 0) base *= 10;
             }
         }
 
@@ -502,12 +537,12 @@ class Unmined {
             //backgroundStroke: new ol.style.Stroke({ color: fgColor, width: 20 }),
         });
 
-        const graticuleLonLabelStyle = graticuleLabelStyle.clone()
-        graticuleLonLabelStyle.setOffsetY(10)
+        const graticuleLonLabelStyle = graticuleLabelStyle.clone();
+        graticuleLonLabelStyle.setOffsetY(10);
 
-        const graticuleLatLabelStyle = graticuleLabelStyle.clone()
-        graticuleLatLabelStyle.setOffsetX(-2)
-        graticuleLatLabelStyle.setTextAlign('right')
+        const graticuleLatLabelStyle = graticuleLabelStyle.clone();
+        graticuleLatLabelStyle.setOffsetX(-2);
+        graticuleLatLabelStyle.setTextAlign('right');
 
         const graticuleStrokeStyle = coord
             ? new ol.style.Stroke({
@@ -517,7 +552,7 @@ class Unmined {
             : new ol.style.Stroke({
                 //color: 'rgba(255,255,255,.6)',
                 color: 'rgb(0,0,0)',
-                width: .5,
+                width: 0.5,
                 //lineDash: [2, 4],
             })
 
@@ -525,31 +560,31 @@ class Unmined {
             strokeStyle: graticuleStrokeStyle,
             showLabels: coord,
             wrapX: false,
-            targetSize: this.#options.denseGrid ? 60 : 120,
+            targetSize: this.#options.denseGrid ? GRATICULE_TARGET_SIZE_DENSE : GRATICULE_TARGET_SIZE_NORMAL,
             intervals: graticuleIntervals,
             lonLabelFormatter: coord ? (lon) => {
-                const c = new ol.geom.Point(ol.proj.transform([lon, 0], this.viewProjection, this.dataProjection)).getFirstCoordinate()
-                let l = Math.round(c[0])
-                if (l == 0) return "x = 0";
-                return l.toString()
+                const c = new ol.geom.Point(ol.proj.transform([lon, 0], this.viewProjection, this.dataProjection)).getFirstCoordinate();
+                let l = Math.round(c[0]);
+                if (l === 0) return "x = 0";
+                return l.toString();
             } : undefined,
             latLabelFormatter: coord ? (lat) => {
-                const c = new ol.geom.Point(ol.proj.transform([0, lat], this.viewProjection, this.dataProjection)).getFirstCoordinate()
-                let l = Math.round(c[1])
-                if (l == 0) return "z = 0";
-                return l.toString()
+                const c = new ol.geom.Point(ol.proj.transform([0, lat], this.viewProjection, this.dataProjection)).getFirstCoordinate();
+                let l = Math.round(c[1]);
+                if (l === 0) return "z = 0";
+                return l.toString();
             } : undefined,
             lonLabelStyle: coord ? graticuleLonLabelStyle : undefined,
             latLabelStyle: coord ? graticuleLatLabelStyle : undefined,
             lonLabelPosition: 1, // 0 = bottom, 1 = top
             latLabelPosition: 1, // 0 = left, 1 = right                        
-        })
-        return graticuleLayer
+        });
+        return graticuleLayer;
     }
 
     static copyToClipboard(text, toast) {
         if (!navigator || !navigator.clipboard || !navigator.clipboard.writeText) {
-            Unmined.toast('剪贴板无法访问')
+            Unmined.toast('剪贴板无法访问');
             return;
         }
 
@@ -560,9 +595,9 @@ class Unmined {
     static toast(message) {
         Toastify({
             text: message,
-            duration: 2000,
-            gravity: "top", // `top` or `bottom`
-            position: "center", // `left`, `center` or `right`                        
+            duration: TOAST_DURATION,
+            gravity: "top",
+            position: "center",
         }).showToast();
     }
 
@@ -667,40 +702,34 @@ class Unmined {
         return contextmenu;
     }
 
-    toggleGridInterval() {
-        this.#options.denseGrid = !this.#options.denseGrid;
-        this.updateGraticule();
+    #toggleOption(optionName, updateCallback) {
+        this.#options[optionName] = !this.#options[optionName];
+        updateCallback.call(this);
         this.saveSettings();
+    }
+
+    toggleGridInterval() {
+        this.#toggleOption('denseGrid', this.updateGraticule);
     }
 
     toggleBinaryGrid() {
-        this.#options.binaryGrid = !this.#options.binaryGrid;
-        this.updateGraticule();
-        this.saveSettings();
+        this.#toggleOption('binaryGrid', this.updateGraticule);
     }
 
     toggleGrid() {
-        this.#options.showGrid = !this.#options.showGrid;
-        this.updateGraticule();
-        this.saveSettings();
+        this.#toggleOption('showGrid', this.updateGraticule);
     }
 
     toggleScaleBar() {
-        this.#options.showScaleBar = !this.#options.showScaleBar;
-        this.updateScaleBar();
-        this.saveSettings();
+        this.#toggleOption('showScaleBar', this.updateScaleBar);
     }
 
     toggleMarkers() {
-        this.#options.showMarkers = !this.#options.showMarkers;
-        this.updateMarkersLayer();
-        this.saveSettings();
+        this.#toggleOption('showMarkers', this.updateMarkersLayer);
     }
 
     togglePlayers() {
-        this.#options.showPlayers = !this.#options.showPlayers;
-        this.updatePlayerMarkersLayer();
-        this.saveSettings();
+        this.#toggleOption('showPlayers', this.updatePlayerMarkersLayer);
     }
 
     loadSettings() {
@@ -746,7 +775,7 @@ class Unmined {
 
     updateScaleBar() {
         if (!this.#options.showScaleBar && this.#scaleLine) {
-            this.olMap.removeControl(this.#scaleLine)
+            this.olMap.removeControl(this.#scaleLine);
             this.#scaleLine = undefined;
         }
         else if (this.#options.showScaleBar && !this.#scaleLine) {
@@ -781,10 +810,10 @@ class Unmined {
         // Coordinate transformation between view and data
         // OpenLayers Y is positive up, world Y is positive down
         ol.proj.addCoordinateTransforms(this.viewProjection, this.dataProjection,
-            function (coordinate) {
+            (coordinate) => {
                 return [coordinate[0] * blocksPerDegrees, -coordinate[1] * blocksPerDegrees];
             },
-            function (coordinate) {
+            (coordinate) => {
                 return [coordinate[0] / blocksPerDegrees, -coordinate[1] / blocksPerDegrees];
             });
 
