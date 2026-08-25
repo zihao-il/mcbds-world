@@ -14,6 +14,7 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 
 const sidebarOpen = ref(false)
+const isDark = ref(false)
 
 let unmined: any = null
 
@@ -140,20 +141,28 @@ onUnmounted(() => {
         cleanupMapScripts(currentMapId, currentDimension)
     }
 })
+
+function toggleDarkMode() {
+    isDark.value = !isDark.value
+    document.documentElement.classList.toggle('dark-mode', isDark.value)
+}
+
 </script>
 
 <template>
     <div class="map-page">
         <!-- PC Sidebar -->
-        <MapSidebar class="desktop-sidebar"/>
+        <MapSidebar :is-dark="isDark" class="desktop-sidebar" @toggle-dark="toggleDarkMode"/>
 
         <!-- 手机 Sidebar -->
         <Transition name="sidebar">
             <MapSidebar
                 v-if="sidebarOpen"
+                :is-dark="isDark"
                 class="mobile-sidebar"
                 mobile
                 @close="closeSidebar"
+                @toggle-dark="toggleDarkMode"
             />
         </Transition>
 
@@ -183,7 +192,7 @@ onUnmounted(() => {
             </div>
 
             <!-- 地图 -->
-            <div id="map" ref="mapElement"></div>
+            <div id="map" ref="mapElement" :class="{ 'dark': isDark }"></div>
 
             <div v-if="loading" class="loading">
                 <div class="loading-box">
@@ -226,10 +235,10 @@ onUnmounted(() => {
  */
 .mobile-toolbar {
     display: none;
-    justify-content: center;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
     margin-top: 1em;
+    gap: 10px;
 }
 
 /*
@@ -304,7 +313,7 @@ onUnmounted(() => {
         align-items: center;
         height: 48px;
         padding: 6px 10px;
-        pointer-events: none;
+        pointer-events: auto;
         gap: 10px;
     }
 
@@ -387,4 +396,9 @@ onUnmounted(() => {
         height: 100%;
     }
 }
+
+#map.dark {
+    background: #000000;
+}
+
 </style>

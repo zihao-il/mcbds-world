@@ -4,11 +4,14 @@ import DimensionSelector from './DimensionSelector.vue'
 
 defineProps<{
     mobile?: boolean
+    isDark?: boolean
 }>()
 
 const emit = defineEmits<{
     close: []
+    toggleDark: []
 }>()
+
 </script>
 
 <template>
@@ -21,6 +24,13 @@ const emit = defineEmits<{
                 <div class="title">Minecraft 世界地图</div>
                 <div class="subtitle">地图导航</div>
             </div>
+
+            <button
+                class="dark-toggle"
+                @click="emit('toggleDark')"
+            >
+                {{ isDark ? '☀️' : '🌙' }}
+            </button>
 
             <!-- 手机关闭按钮 -->
             <button
@@ -92,6 +102,19 @@ const emit = defineEmits<{
     border: 0;
     border-radius: 50%;
     background: rgba(128, 128, 128, 0.12);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+
+.dark-toggle {
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    pointer-events: auto;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(128, 128, 128, 0.12);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
 }
 
 /*

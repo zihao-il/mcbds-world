@@ -46,7 +46,7 @@ UnminedCustomMarkers = {
         {
             x: -200,
             z: -200,
-            image: "/unmined/custom.pin.png",
+            image: "custom.pin.png",
             imageAnchor: [0.5, 1],
             imageScale: 0.5,
         },
@@ -55,11 +55,11 @@ UnminedCustomMarkers = {
         {
             x: 0,
             z: 0,
-            image: "/unmined/custom.pin.png",
+            image: "custom.pin.png",
             imageAnchor: [0.5, 1],
             imageScale: 0.5,
-            text: "文本",
-            textColor: "red",
+            text: "Marker with text",
+            textColor: "red", 
             offsetX: 0,
             offsetY: 20,
             font: "bold 20px Calibri,sans serif",
@@ -69,7 +69,7 @@ UnminedCustomMarkers = {
         {
             x: 200,
             z: 200,
-            text: "文本",
+            text: "Text only", 
             textColor: "yellow", 
             offsetX: 0,
             offsetY: 0, 
