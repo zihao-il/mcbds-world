@@ -112,7 +112,7 @@ export async function createUnminedMap(element: HTMLElement, mapId: string, dime
         /*
          * 玩家头像
          */
-        playerImagePath: '/unmined/playerimages/default.png'
+        playerImagePath: '/unmined/playerimages'
     }
 
     /*
