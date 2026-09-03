@@ -76,6 +76,14 @@ function formatLastPlayed(timestamp: bigint | number): string {
     })
 }
 
+function formatWorldDays(tick: number): string {
+    if (tick === undefined || tick === null) return '未知'
+    const tickNum = typeof tick === 'bigint' ? Number(tick) : tick
+    if (tickNum < 0) return '未知'
+    const days = Math.floor(tickNum / 24000)
+    return `${days} 天`
+}
+
 </script>
 
 <template>
@@ -108,7 +116,11 @@ function formatLastPlayed(timestamp: bigint | number): string {
                                 }}</span>
                         </div>
                         <div v-if="levelData[map.id].Time">
-                            <span class="version-label">世界时长：</span>
+                            <span class="version-label">世界天数：</span>
+                            <span class="version-value">{{ formatWorldDays(levelData[map.id].Time) }}</span>
+                        </div>
+                        <div v-if="levelData[map.id].Time">
+                            <span class="version-label">游戏时长：</span>
                             <span class="version-value">{{ formatWorldAge(levelData[map.id].Time) }}</span>
                         </div>
                         <div v-if="levelData[map.id].LastPlayed">
